@@ -3,10 +3,10 @@ use anchor_lang::{
     system_program::{transfer, Transfer},
 };
 
-declare_id!("2u5cG7PEVL5KdTRMWSjdwqtBVv1anE5Hvv4FGSPZVRUN");
+declare_id!("HRsn6GmCiVkXeZymVGPek5Ebb6XJJix6dsDaHxswZb1r");
 
 #[program]
-pub mod anchor_vault_q4_25 {
+pub mod solana_vault {
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
@@ -17,13 +17,15 @@ pub mod anchor_vault_q4_25 {
         ctx.accounts.deposit(amount)
     }
 
-    // pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
-    //     ctx.accounts.withdraw(amount)
-    // }
+    // Added withdraw - takes amount as parameter
+    pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
+        ctx.accounts.withdraw(amount)
+    }
 
-    // pub fn close(ctx: Context<Close>) -> Result<()> {
-    //     ctx.accounts.close()
-    // }
+    // Added close - no amount needed since we withdraw everything
+    pub fn close(ctx: Context<Close>) -> Result<()> {
+        ctx.accounts.close()
+    }
 }
 
 #[derive(Accounts)]
@@ -105,30 +107,113 @@ impl<'info> Deposit<'info> {
     }
 }
 
-// #[derive(Accounts)]
-// pub struct Withdraw<'info> {
-// TODO: Implement Withdraw accounts
-// }
+// Withdraw accounts - pretty similar to Deposit
+#[derive(Accounts)]
+pub struct Withdraw<'info> {
+    // User needs to sign the transaction
+    #[account(mut)]
+    pub user: Signer<'info>,
 
-// impl<'info> Withdraw<'info> {
-//     pub fn withdraw(&mut self, _amount: u64) -> Result<()> {
-//         TODO: Implement withdraw
+    // Vault PDA - using the saved bump from vault_state
+    #[account(
+        mut,
+        seeds = [b"vault", vault_state.key().as_ref()], 
+        bump = vault_state.vault_bump,
+    )]
+    pub vault: SystemAccount<'info>,
 
-//         Ok(())
-//     }
-// }
+    // Need vault_state to access the bumps
+    #[account(
+        seeds = [b"state", user.key().as_ref()],
+        bump = vault_state.state_bump,
+    )]
+    pub vault_state: Account<'info, VaultState>,
 
-// #[derive(Accounts)]
-// pub struct Close<'info> {
-//      TODO: Implement Close accounts
-// }
+    pub system_program: Program<'info, System>,
+}
 
-// impl<'info> Close<'info> {
-//     pub fn close(&mut self) -> Result<()> {
-//          TODO: Implement close
-//         Ok(())
-//     }
-// }
+impl<'info> Withdraw<'info> {
+    pub fn withdraw(&mut self, amount: u64) -> Result<()> {
+        // Setting up the transfer - this time FROM vault TO user
+        let cpi_program = self.system_program.to_account_info();
+
+        let cpi_accounts = Transfer {
+            from: self.vault.to_account_info(),
+            to: self.user.to_account_info(),
+        };
+
+        // Need to create signer seeds because the vault PDA is sending SOL
+        // reconstructing the same seeds used to create the PDA
+        let seeds = &[
+            b"vault",
+            self.vault_state.to_account_info().key.as_ref(),
+            &[self.vault_state.vault_bump],
+        ];
+        let signer_seeds = &[&seeds[..]];
+
+        // Use new_with_signer instead of new because PDA needs to sign
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
+
+        transfer(cpi_ctx, amount)?;
+
+        Ok(())
+    }
+}
+
+// Close accounts - cleanup everything
+#[derive(Accounts)]
+pub struct Close<'info> {
+    #[account(mut)]
+    pub user: Signer<'info>,
+
+    // Vault that holds the SOL
+    #[account(
+        mut,
+        seeds = [b"vault", vault_state.key().as_ref()], 
+        bump = vault_state.vault_bump,
+    )]
+    pub vault: SystemAccount<'info>,
+
+    // Adding close = user here automatically returns rent to user
+    #[account(
+        mut,
+        seeds = [b"state", user.key().as_ref()],
+        bump = vault_state.state_bump,
+        close = user,
+    )]
+    pub vault_state: Account<'info, VaultState>,
+
+    pub system_program: Program<'info, System>,
+}
+
+impl<'info> Close<'info> {
+    pub fn close(&mut self) -> Result<()> {
+        // Transfer all remaining SOL from vault to user
+        let cpi_program = self.system_program.to_account_info();
+
+        let cpi_accounts = Transfer {
+            from: self.vault.to_account_info(),
+            to: self.user.to_account_info(),
+        };
+
+        // Same signer seeds pattern as withdraw
+        let seeds = &[
+            b"vault",
+            self.vault_state.to_account_info().key.as_ref(),
+            &[self.vault_state.vault_bump],
+        ];
+        let signer_seeds = &[&seeds[..]];
+
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
+
+        // Get the full balance and transfer it all
+        let vault_balance = self.vault.to_account_info().lamports();
+        transfer(cpi_ctx, vault_balance)?;
+
+        // vault_state will be closed automatically due to close constraint above
+        Ok(())
+    }
+}
 
 #[derive(InitSpace)]
 #[account]
