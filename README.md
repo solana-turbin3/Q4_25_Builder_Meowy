@@ -7,4 +7,11 @@ cohort work so far:
 - vault
 - escrow
 - amm
-- mplx
+- mplx-nft-collection
+- nft-staking - In progress - currently focused on capstone, will finish this after capstone
+- dice game - In progress - currently focused on capstone, will finish this after capstone
+
+
+---
+
+Capstone - In progress - presenting on demo day scheduled at 20th
