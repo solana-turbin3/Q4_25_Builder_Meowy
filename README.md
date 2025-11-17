@@ -14,4 +14,14 @@ cohort work so far:
 
 ---
 
-Capstone - In progress - presenting on demo day scheduled at 20th
+## Capstone 
+
+#### SolArena
+
+> A decentralized, gas-free contest platform built on Solana
+
+
+**Program ID:** `9VcxDiDi8kbP6UnaVocXDcSPDwoJiDMxmECdqyALGuA4`
+**Explorer:** [View on Solana Explorer](https://explorer.solana.com/address/9VcxDiDi8kbP6UnaVocXDcSPDwoJiDMxmECdqyALGuA4?cluster=devnet)
+**Live Website:** [solana-contest-platform.vercel.app](https://solana-contest-platform.vercel.app/)
+**GitHub Repository:** [github.com/meowyx/solana-contest-platform](https://github.com/meowyx/solana-contest-platform)

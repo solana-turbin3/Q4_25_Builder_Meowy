@@ -1,41 +1,54 @@
 # SolArena
 
+> A decentralized, gas-free contest platform built on Solana
 
+## 🚀 Live Deployment
 
-A gas-free contest platform on Solana that enables organizations to launch competitions and bounties with escrowed prizes, transparent verification, and USD-stable prize values
+**Network:** Solana Devnet
+**Program ID:** `9VcxDiDi8kbP6UnaVocXDcSPDwoJiDMxmECdqyALGuA4`
+**Explorer:** [View on Solana Explorer](https://explorer.solana.com/address/9VcxDiDi8kbP6UnaVocXDcSPDwoJiDMxmECdqyALGuA4?cluster=devnet)
+**Live Website:** [solana-contest-platform.vercel.app](https://solana-contest-platform.vercel.app/)
+**GitHub Repository:** [github.com/meowyx/solana-contest-platform](https://github.com/meowyx/solana-contest-platform)
 
+## Overview
 
-### **Contest Creator Journey:**
+SolArena is a decentralized contest and bounty platform that enables organizations to launch competitions with built-in escrow, multisig judging, and optional transaction fee sponsorship. Participants can submit entries without needing SOL for gas fees.
 
-- Connect wallet to platform
-- Create contest with basic parameters
-- Choose contest type (bounty/competition/raffle)
-- Set prize amount in USD value
-- Fund escrow with SOL (converted from USD value)
-- Appoint judges (multisig signers)
-- Enable gas sponsorship
-- Monitor submissions
-- Await winner verification
+## Core Features
 
-### **Participant Journey:**
+- **SOL-Based Prizes** - Direct SOL prize amounts with transparent escrow
+- **Built-in Escrow** - Automatic fund locking using PDAs
+- **Multisig Judging** - Configurable judge panel with customizable approval threshold
+- **Gas Sponsorship** - Optional fee sponsorship for barrier-free participation
+- **Submission Management** - URL-based submissions with update capability
 
-- Browse active contests
-- View prize values in USD and SOL
-- Submit entry (GitHub URL or content link)
-- Submit without paying gas (if sponsored)
-- Update submission URL if needed
-- Track contest status
-- Receive automatic payment if winner
+## Quick Start
 
-### **Judge Journey:**
+```bash
+# Install dependencies
+yarn install
 
-- Review submission URLs/content
-- Evaluate against contest criteria
-- Sign winner selection on-chain
-- Enable automatic distribution
+# Build the program
+anchor build
 
-### **Platform Journey:**
+# Run tests
+anchor test
 
-- Maintain Switchboard SOL/USD price feed
-- Update prize calculations
-- Ensure accurate USD valuations
+# Deploy to devnet
+anchor deploy --provider.cluster devnet
+```
+
+## Use Cases
+
+- Hackathons and coding competitions
+- Bounty programs for development work
+- Design contests and content creation
+- Community challenges
+- Bug bounties
+
+## Technical Stack
+
+- **Framework:** Anchor 0.32.1
+- **Language:** Rust
+- **Platform:** Solana
+- **Frontend:** Next.js 16 with App Router
